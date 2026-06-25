@@ -583,6 +583,7 @@ function viewConfig(){
     '<button class="btn" data-act="export-json">⤓ Exportar JSON</button>'+
     '<button class="btn" data-act="import-json">⤒ Importar JSON</button>'+
     '<button class="btn danger" data-act="del-all-tasks">🗑️ Borrar todas las tareas</button>'+
+    '<button class="btn danger" data-act="del-all-data">🗑️ Borrar proyectos y modeladores</button>'+
     '<button class="btn danger" data-act="reset">↺ Restaurar datos de ejemplo</button>'+
   '</div></div>';
 }
@@ -820,6 +821,7 @@ var ACTIONS={
   'colorby':function(v){UI.colorBy=v;render();},
   'ganttgroup':function(v){UI.ganttGroup=v;render();},
   'del-all-tasks':function(){if(confirm('¿Borrar TODAS las tareas? Esta acción no se puede deshacer.')){state.tareas=[];save().then(render);}},
+  'del-all-data':function(){if(confirm('¿Borrar TODOS los proyectos y modeladores? Esto también eliminará todas las tareas asociadas. Esta acción no se puede deshacer.')){state.proyectos=[];state.personas=[];state.tareas=[];state.asignadores=[];save().then(render);}},
   'toggle-complete':function(id){var t=byId(state.tareas,id);if(t){t.estado=t.estado==='hecha'?'pendiente':'hecha';save().then(render);}},
   'del-task-individual':function(id){var t=byId(state.tareas,id);if(confirm('¿Eliminar la tarea "'+t.nombre+'"?')){state.tareas=state.tareas.filter(function(x){return x.id!==id;});save().then(render);}},
 };
