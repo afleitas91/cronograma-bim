@@ -356,14 +356,19 @@ function viewResumen(sch){
 
   var upRows=upcoming.map(function(t){
     var s=sch[t.id];
-    return '<tr data-act="edit-task" data-id="'+t.id+'" style="cursor:pointer">'+
+    return '<tr>'+
       '<td><div class="t-name">'+esc(t.nombre)+'</div><div class="t-sub">'+esc(proyecto(t.proyectoId).nombre)+'</div></td>'+
       '<td>'+personPill(t.personaId)+'</td>'+
       '<td class="num">'+fmtHuman(s.endStr)+'</td>'+
       '<td class="num muted">'+(t.deadline?fmtHuman(t.deadline):'—')+'</td>'+
       '<td>'+(s.atRisk?'<span class="badge risk">⚑ Riesgo</span>':'<span class="badge hecha" style="background:var(--ok-soft)">A tiempo</span>')+'</td>'+
+      '<td class="right"><div class="rowact">'+
+        '<button class="iconbtn" data-act="toggle-complete" data-id="'+t.id+'" title="Marcar completada">☐</button>'+
+        '<button class="iconbtn" data-act="edit-task" data-id="'+t.id+'" title="Editar">✎</button>'+
+        '<button class="iconbtn" data-act="del-task-individual" data-id="'+t.id+'" title="Eliminar">✕</button>'+
+      '</div></td>'+
     '</tr>';
-  }).join('')||'<tr><td colspan="5" class="empty">Sin entregas pendientes.</td></tr>';
+  }).join('')||'<tr><td colspan="6" class="empty">Sin entregas pendientes.</td></tr>';
 
   var loadRows=loads.map(function(l){
     return '<div class="load-row">'+
