@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cronograma BIM — Gestión de proyectos</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <aside class="rail">
+    <div class="brand">
+      <div class="glyph"></div>
+      <div><b>Cronograma BIM</b><small>Arqly · Modelado</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="rail-foot">
+      <div style="font-size:11px;margin-bottom:8px">Estado
+        <span id="syncStatus" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4adc6e;margin-left:4px" title="Online"></span>
+      </div>
+      Última edición<br><span class="num" id="lastsave">—</span>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="viewTitle">Resumen</h1>
+        <div class="sub" id="viewSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="actions no-print" style="display:flex;gap:8px;align-items:center">
+        <select id="langSelector" style="padding:6px 8px;border:1px solid #ddd;border-radius:4px;cursor:pointer" onchange="setLang(this.value)">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇺🇸 English</option>
+        </select>
+        <div id="userDisplay" style="padding:0 8px;border-right:1px solid #ddd;font-size:12px">Admin</div>
+        <button class="btn" data-act="export-json"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Respaldo</button>
+        <button class="btn" data-act="export-pdf"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Exportar PDF</button>
+        <button class="btn primary" data-act="add-task"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nueva tarea</button>
+      </div>
+    </header>
+    <div class="content" id="view"></div>
+  </main>
+</div>
+<div id="modal-root"></div>
+
+<script src="config.js"></script>
+<script src="i18n.js"></script>
+<script src="roles.js"></script>
+<script src="storage.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
