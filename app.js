@@ -104,16 +104,45 @@ function seed(){
     t({proyectoId:'pr3',personaId:'pe5',nombre:'Apoyo modelado Lightspeed',horasEstimadas:12,prioridad:2,asignadorId:'as2'}),
   ];
   var ausencias=[{id:uid('au'),personaId:'pe3',fechaInicio:iso(3),fechaFin:iso(4),motivo:'Cita médica'}];
-  return {personas:personas,asignadores:asignadores,proyectos:proyectos,tareas:tareas,ausencias:ausencias,feriados:fer};
+  var usuarios=[
+    {id:'u1',nombre:'Admin',password:'admin123',rol:'admin',permisos:{create_task:true,edit_task:true,delete_task:true,assign_task:true,edit_project:true,delete_project:true,manage_team:true,manage_config:true,manage_roles:true,mark_complete:true}},
+    {id:'u2',nombre:'Daniel',password:'daniel123',rol:'user',permisos:{view_tasks:true,view_projects:true,mark_complete:true}},
+    {id:'u3',nombre:'Stevens',password:'stevens123',rol:'user',permisos:{view_tasks:true,view_projects:true,mark_complete:true}},
+  ];
+  return {personas:personas,asignadores:asignadores,proyectos:proyectos,tareas:tareas,ausencias:ausencias,feriados:fer,usuarios:usuarios};
 }
 
 var state;
+var currentUser = JSON.parse(localStorage.getItem('app_currentUser') || 'null');
+
 async function load(){
   var raw = await storage.get(STORE_KEY);
   if(raw){ try{ state=JSON.parse(raw); }catch(e){ state=seed(); } }
   else { state=seed(); }
   // asegurar listas
-  ['personas','asignadores','proyectos','tareas','ausencias','feriados'].forEach(function(k){ if(!Array.isArray(state[k])) state[k]=[]; });
+  ['personas','asignadores','proyectos','tareas','ausencias','feriados','usuarios'].forEach(function(k){ if(!Array.isArray(state[k])) state[k]=[]; });
+}
+
+function login(username, password){
+  var user = state.usuarios.find(function(u){return u.nombre===username && u.password===password;});
+  if(user){
+    currentUser = user;
+    localStorage.setItem('app_currentUser', JSON.stringify(user));
+    render();
+    return true;
+  }
+  return false;
+}
+
+function logout(){
+  currentUser = null;
+  localStorage.removeItem('app_currentUser');
+  render();
+}
+
+function hasPermission(perm){
+  if(!currentUser) return false;
+  return currentUser.permisos && currentUser.permisos[perm];
 }
 
 async function save(){
@@ -296,8 +325,15 @@ function header(title,sub){
 }
 
 function render(){
-  setActiveTab();
   var v=document.getElementById('view');
+  if(!currentUser){
+    document.getElementById('app').style.display='none';
+    v.innerHTML=loginView();
+    return;
+  }
+  document.getElementById('app').style.display='';
+  document.getElementById('userDisplay').textContent = currentUser.nombre + ' (' + currentUser.rol + ')';
+  setActiveTab();
   var sch=computeSchedule();
   if(UI.tab==='resumen') v.innerHTML=viewResumen(sch);
   else if(UI.tab==='proyectos') v.innerHTML=viewProyectos(sch);
@@ -588,6 +624,27 @@ function viewConfig(){
   '</div></div>';
 }
 
+/* ---- LOGIN ---- */
+function loginView(){
+  return '<div style="display:flex;justify-content:center;align-items:center;min-height:100vh;background:var(--bg)">'+
+    '<div class="panel" style="width:100%;max-width:400px;padding:40px">'+
+      '<div style="text-align:center;margin-bottom:30px">'+
+        '<h1>Cronograma BIM</h1>'+
+        '<p style="color:var(--ink-3)">Sistema de Gestión de Proyectos</p>'+
+      '</div>'+
+      '<div class="frow"><label>Usuario</label><input id="login_user" placeholder="Admin, Daniel, Stevens" autofocus></div>'+
+      '<div class="frow"><label>Contraseña</label><input id="login_pass" type="password" placeholder="Ingresa tu contraseña"></div>'+
+      '<button class="btn primary" style="width:100%;margin-top:20px" data-act="do-login">Iniciar sesión</button>'+
+      '<div style="text-align:center;margin-top:30px;font-size:12px;color:var(--ink-3)">'+
+        '<p><strong>Usuarios de demostración:</strong></p>'+
+        '<p>Admin / admin123</p>'+
+        '<p>Daniel / daniel123</p>'+
+        '<p>Stevens / stevens123</p>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
 /* ============================================================
    MODALES Y FORMULARIOS
    ============================================================ */
@@ -789,6 +846,20 @@ function resetData(){if(confirm('Esto reemplaza todo por los datos de ejemplo. �
    ENRUTADOR DE EVENTOS
    ============================================================ */
 var ACTIONS={
+  'do-login':function(){
+    var username = document.getElementById('login_user').value.trim();
+    var password = document.getElementById('login_pass').value;
+    if(!username || !password){
+      alert('Ingresa usuario y contraseña');
+      return;
+    }
+    if(login(username, password)){
+      return;
+    } else {
+      alert('Usuario o contraseña incorrectos');
+    }
+  },
+  'logout':function(){logout();},
   'add-task':function(){taskModal(null);},
   'add-task-proj':function(){taskModal(null);},
   'add-task-person':function(){taskModal(null);},
