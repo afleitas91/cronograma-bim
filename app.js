@@ -606,7 +606,23 @@ function viewConfig(){
 
   var asgRows=state.asignadores.map(function(a){return '<tr><td class="t-name">'+esc(a.nombre)+'</td><td class="right"><button class="iconbtn" data-act="del-asg" data-id="'+a.id+'">✕</button></td></tr>';}).join('');
 
-  return '<div class="grid2">'+
+  var usersSection='';
+  if(currentUser && currentUser.rol==='admin'){
+    var userRows=state.usuarios.map(function(u){
+      var perms=Object.keys(u.permisos||{}).filter(function(k){return u.permisos[k];}).join(', ');
+      return '<tr>'+
+        '<td><b>'+esc(u.nombre)+'</b></td>'+
+        '<td class="muted" style="font-size:11px">'+esc(perms||'—')+'</td>'+
+        '<td class="muted">'+esc(u.rol)+'</td>'+
+        '<td class="right"><button class="iconbtn" data-act="edit-user" data-id="'+u.id+'">✎</button>'+
+        (u.id!=='u1'?'<button class="iconbtn" data-act="del-user" data-id="'+u.id+'">✕</button>':'<button class="iconbtn" style="opacity:0.3;cursor:not-allowed">✕</button>')+
+        '</td></tr>';
+    }).join('');
+    usersSection='<div class="panel"><div class="panel-h"><span class="eyebrow">Seguridad</span><h2>Gestión de usuarios</h2><div class="spacer"></div><button class="btn sm" data-act="add-user">+ Nuevo usuario</button></div>'+
+      '<table><thead><tr><th>Usuario</th><th>Permisos</th><th>Rol</th><th></th></tr></thead><tbody>'+userRows+'</tbody></table></div>';
+  }
+
+  return usersSection+'<div class="grid2">'+
     '<div class="panel"><div class="panel-h"><span class="eyebrow">Equipo</span><h2>Modeladores</h2><div class="spacer"></div><button class="btn sm" data-act="add-person">+ Persona</button></div>'+
       '<table><thead><tr><th>Nombre</th><th>Capacidad</th><th>Estado</th><th></th></tr></thead><tbody>'+peopleRows+'</tbody></table></div>'+
     '<div class="panel"><div class="panel-h"><span class="eyebrow">Quién asigna</span><h2>Asignadores</h2><div class="spacer"></div><button class="btn sm" data-act="add-asg">+ Asignador</button></div>'+
@@ -769,6 +785,52 @@ function asgModal(){
   openModal('Nuevo asignador',body,function(){var n=val('f_n').trim();if(!n){alert('Nombre requerido.');return false;}state.asignadores.push({id:uid('as'),nombre:n});save().then(render);});
 }
 
+function userModal(user){
+  var isNew=!user;
+  var title=isNew?'Nuevo usuario':'Editar usuario';
+  var perms={create_task:false,edit_task:false,delete_task:false,assign_task:false,edit_project:false,delete_project:false,manage_team:false,manage_config:false,manage_roles:false,view_tasks:false,view_projects:false,view_reports:false,mark_complete:false};
+  if(user) Object.assign(perms,user.permisos);
+  var body='<div class="frow"><label>Nombre</label><input id="uf_name" placeholder="Ej: Juan" value="'+(user?esc(user.nombre):'')+'"></div>'+
+    '<div class="frow"><label>Contraseña</label><input id="uf_pass" type="password" placeholder="'+(isNew?'Nueva contraseña':'Dejar en blanco para no cambiar')+'"></div>'+
+    '<div class="frow"><label>Rol</label><select id="uf_rol"><option value="user" '+(user && user.rol==='user'?'selected':'')+'> Usuario</option><option value="admin" '+(user && user.rol==='admin'?'selected':'')+'>Admin</option></select></div>'+
+    '<div style="margin-top:20px"><label style="margin-bottom:10px;display:block"><strong>Permisos</strong></label>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+    '<label><input type="checkbox" id="uf_create_task" '+(perms.create_task?'checked':'')+'> Crear tareas</label>'+
+    '<label><input type="checkbox" id="uf_edit_task" '+(perms.edit_task?'checked':'')+'> Editar tareas</label>'+
+    '<label><input type="checkbox" id="uf_delete_task" '+(perms.delete_task?'checked':'')+'> Eliminar tareas</label>'+
+    '<label><input type="checkbox" id="uf_assign_task" '+(perms.assign_task?'checked':'')+'> Asignar tareas</label>'+
+    '<label><input type="checkbox" id="uf_edit_project" '+(perms.edit_project?'checked':'')+'> Editar proyectos</label>'+
+    '<label><input type="checkbox" id="uf_delete_project" '+(perms.delete_project?'checked':'')+'> Eliminar proyectos</label>'+
+    '<label><input type="checkbox" id="uf_manage_team" '+(perms.manage_team?'checked':'')+'> Gestionar equipo</label>'+
+    '<label><input type="checkbox" id="uf_manage_config" '+(perms.manage_config?'checked':'')+'> Configuración</label>'+
+    '<label><input type="checkbox" id="uf_manage_roles" '+(perms.manage_roles?'checked':'')+'> Gestionar roles</label>'+
+    '<label><input type="checkbox" id="uf_view_tasks" '+(perms.view_tasks?'checked':'')+'> Ver tareas</label>'+
+    '<label><input type="checkbox" id="uf_view_projects" '+(perms.view_projects?'checked':'')+'> Ver proyectos</label>'+
+    '<label><input type="checkbox" id="uf_mark_complete" '+(perms.mark_complete?'checked':'')+'> Marcar completado</label>'+
+    '</div></div>';
+  openModal(title,body,function(){
+    var name=val('uf_name').trim();
+    var pass=val('uf_pass').trim();
+    var rol=val('uf_rol');
+    if(!name){alert('Nombre requerido.');return false;}
+    if(isNew && !pass){alert('Contraseña requerida.');return false;}
+    if(user && pass && !confirm('¿Cambiar contraseña?')) pass=null;
+    var newPerms={};
+    ['create_task','edit_task','delete_task','assign_task','edit_project','delete_project','manage_team','manage_config','manage_roles','view_tasks','view_projects','mark_complete'].forEach(function(p){
+      newPerms[p]=document.getElementById('uf_'+p).checked;
+    });
+    if(isNew){
+      state.usuarios.push({id:uid('u'),nombre:name,password:pass,rol:rol,permisos:newPerms});
+    } else {
+      user.nombre=name;
+      if(pass) user.password=pass;
+      user.rol=rol;
+      user.permisos=newPerms;
+    }
+    save().then(render);
+  });
+}
+
 /* ============================================================
    ACCIONES (reordenar, borrar, importar/exportar, etc.)
    ============================================================ */
@@ -894,6 +956,9 @@ var ACTIONS={
   'del-all-data':function(){if(confirm('¿Borrar TODOS los proyectos y modeladores? Esto también eliminará todas las tareas asociadas. Esta acción no se puede deshacer.')){state.proyectos=[];state.personas=[];state.tareas=[];state.asignadores=[];save().then(render);}},
   'toggle-complete':function(id){var t=byId(state.tareas,id);if(t){t.estado=t.estado==='hecha'?'pendiente':'hecha';save().then(render);}},
   'del-task-individual':function(id){var t=byId(state.tareas,id);if(confirm('¿Eliminar la tarea "'+t.nombre+'"?')){state.tareas=state.tareas.filter(function(x){return x.id!==id;});save().then(render);}},
+  'add-user':function(){userModal(null);},
+  'edit-user':function(id){userModal(byId(state.usuarios,id));},
+  'del-user':function(id){var u=byId(state.usuarios,id);if(u && u.id!=='u1' && confirm('¿Eliminar usuario '+u.nombre+'?')){state.usuarios=state.usuarios.filter(function(x){return x.id!==id;});save().then(render);}},
 };
 
 document.addEventListener('click',function(e){
