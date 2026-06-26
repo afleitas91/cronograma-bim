@@ -327,12 +327,11 @@ function header(title,sub){
 function render(){
   var v=document.getElementById('view');
   if(!currentUser){
-    document.getElementById('app').style.display='none';
     v.innerHTML=loginView();
     return;
   }
-  document.getElementById('app').style.display='';
-  document.getElementById('userDisplay').textContent = currentUser.nombre + ' (' + currentUser.rol + ')';
+  var userDisplay = document.getElementById('userDisplay');
+  if(userDisplay) userDisplay.textContent = currentUser.nombre + ' (' + currentUser.rol + ')';
   setActiveTab();
   var sch=computeSchedule();
   if(UI.tab==='resumen') v.innerHTML=viewResumen(sch);
