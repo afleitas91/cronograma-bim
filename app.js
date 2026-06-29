@@ -654,15 +654,9 @@ function loginView(){
         '<h1>Cronograma BIM</h1>'+
         '<p style="color:var(--ink-3)">Sistema de Gestión de Proyectos</p>'+
       '</div>'+
-      '<div class="frow"><label>Usuario</label><input id="login_user" placeholder="Admin, Daniel, Stevens" autofocus></div>'+
+      '<div class="frow"><label>Usuario</label><input id="login_user" placeholder="Ingresa tu usuario" autofocus></div>'+
       '<div class="frow"><label>Contraseña</label><input id="login_pass" type="password" placeholder="Ingresa tu contraseña"></div>'+
       '<button class="btn primary" style="width:100%;margin-top:20px" data-act="do-login">Iniciar sesión</button>'+
-      '<div style="text-align:center;margin-top:30px;font-size:12px;color:var(--ink-3)">'+
-        '<p><strong>Usuarios de demostración:</strong></p>'+
-        '<p>Admin / admin123</p>'+
-        '<p>Daniel / daniel123</p>'+
-        '<p>Stevens / stevens123</p>'+
-      '</div>'+
     '</div>'+
   '</div>';
 }
