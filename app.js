@@ -104,12 +104,16 @@ function seed(){
     t({proyectoId:'pr3',personaId:'pe5',nombre:'Apoyo modelado Lightspeed',horasEstimadas:12,prioridad:2,asignadorId:'as2'}),
   ];
   var ausencias=[{id:uid('au'),personaId:'pe3',fechaInicio:iso(3),fechaFin:iso(4),motivo:'Cita médica'}];
-  var usuarios=[
+  return {personas:personas,asignadores:asignadores,proyectos:proyectos,tareas:tareas,ausencias:ausencias,feriados:fer,usuarios:defaultUsers()};
+}
+
+// Usuarios por defecto — siempre existe al menos el Admin
+function defaultUsers(){
+  return [
     {id:'u1',nombre:'Admin',password:'admin123',rol:'admin',permisos:{create_task:true,edit_task:true,delete_task:true,assign_task:true,edit_project:true,delete_project:true,manage_team:true,manage_config:true,manage_roles:true,mark_complete:true}},
     {id:'u2',nombre:'Daniel',password:'daniel123',rol:'user',permisos:{view_tasks:true,view_projects:true,mark_complete:true}},
     {id:'u3',nombre:'Stevens',password:'stevens123',rol:'user',permisos:{view_tasks:true,view_projects:true,mark_complete:true}},
   ];
-  return {personas:personas,asignadores:asignadores,proyectos:proyectos,tareas:tareas,ausencias:ausencias,feriados:fer,usuarios:usuarios};
 }
 
 var state;
@@ -121,10 +125,13 @@ async function load(){
   else { state=seed(); }
   // asegurar listas
   ['personas','asignadores','proyectos','tareas','ausencias','feriados','usuarios'].forEach(function(k){ if(!Array.isArray(state[k])) state[k]=[]; });
+  // auto-reparar: si no hay usuarios (datos guardados antes del sistema de login), restaurar los de fábrica
+  if(!state.usuarios.length) state.usuarios=defaultUsers();
 }
 
 function login(username, password){
-  var user = state.usuarios.find(function(u){return u.nombre===username && u.password===password;});
+  var u0=(username||'').trim().toLowerCase();
+  var user = state.usuarios.find(function(u){return u.nombre.toLowerCase()===u0 && u.password===password;});
   if(user){
     currentUser = user;
     localStorage.setItem('app_currentUser', JSON.stringify(user));
