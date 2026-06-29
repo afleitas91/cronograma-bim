@@ -799,7 +799,7 @@ function userModal(user){
   if(user) Object.assign(perms,user.permisos);
   var body='<div class="frow"><label>Nombre</label><input id="uf_name" placeholder="Ej: Juan" value="'+(user?esc(user.nombre):'')+'"></div>'+
     '<div class="frow"><label>Contraseña</label><input id="uf_pass" type="password" placeholder="'+(isNew?'Nueva contraseña':'Dejar en blanco para no cambiar')+'"></div>'+
-    '<div class="frow"><label>Rol</label><select id="uf_rol"><option value="user" '+(user && user.rol==='user'?'selected':'')+'> Usuario</option><option value="admin" '+(user && user.rol==='admin'?'selected':'')+'>Admin</option></select></div>'+
+    '<div class="frow"><label>Rol</label><select id="uf_rol" onchange="onRoleChange(this.value)"><option value="user" '+(user && user.rol==='user'?'selected':'')+'> Usuario</option><option value="admin" '+(user && user.rol==='admin'?'selected':'')+'>Admin</option></select></div>'+
     '<div style="margin-top:20px"><label style="margin-bottom:10px;display:block"><strong>Permisos</strong></label>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
     '<label><input type="checkbox" id="uf_create_task" '+(perms.create_task?'checked':'')+'> Crear tareas</label>'+
@@ -836,6 +836,13 @@ function userModal(user){
     }
     save().then(render);
   });
+}
+
+// Al cambiar el rol en el modal de usuario: Admin marca todos los permisos, Usuario los desmarca
+function onRoleChange(rol){
+  var ids=['create_task','edit_task','delete_task','assign_task','edit_project','delete_project','manage_team','manage_config','manage_roles','view_tasks','view_projects','mark_complete'];
+  var marcar=(rol==='admin');
+  ids.forEach(function(p){var el=document.getElementById('uf_'+p);if(el)el.checked=marcar;});
 }
 
 /* ============================================================
